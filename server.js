@@ -58,7 +58,7 @@ questions = () => {
             newRole();
         } else if (options === 'View All Departments') {
             allDepartments();
-        } else {
+        } else if (options === 'Add Department') {
             newDepartment();
         }
     });
@@ -71,11 +71,11 @@ allEmployess = () => {
                 manager.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = department.id
                 LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON employee.manager_id = manager.id`;
 
-    db.query(sql, (err, rows) => {
+    db.query(runSql, (err, rows) => {
         if (err) throw err;
         console.table(rows);
         questions();
-    })
+    });
 }
 
 // The option 'Add Employee' leads to the 'newEmployee' function
@@ -125,13 +125,13 @@ addEmployee = () => {
                             message: `Who is the employee's manager?`,
                             options: managers
                         }
-                    ]).then(managerAnswer => {
-                        const manager = managerChoice;
+                    ]).then(managerChoice => {
+                        const manager = managerChoice.manager;
                         fullName.push(manager);
 
                         const runSql = `INSERT INTO employee (firstName, LastName, role_id, manager_id) VALUES (?, ?, ?, ?)`;
 
-                        db.query(sql, fullName, (err, result) => {
+                        db.query(runSql, fullName, (err, result) => {
                             if (err) throw err;
 
                             console.log('Successfully added ' + userChoice.firstName + ' ' + userChoice.lastName + ' to the database');
@@ -143,4 +143,9 @@ addEmployee = () => {
             });
         });
     });
+}
+
+// The option 'Update Employee Role' leads to the 'updateRole' function
+updateRole = () => {
+
 }
