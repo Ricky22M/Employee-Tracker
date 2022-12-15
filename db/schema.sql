@@ -1,11 +1,11 @@
-DROP IF EXISTS employee_db;
-CREATE DATABASE employee_db;
+DROP IF EXISTS employees_db;
+CREATE DATABASE employees_db;
 
-USE employee_db;
+USE employees_db;
 
 CREATE TABLE departments (
     id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(25) NOT NULL
+    name VARCHAR(30) NOT NULL
 );
 
 CREATE TABLE roles (
@@ -18,8 +18,8 @@ CREATE TABLE roles (
 
 CREATE TABLE employees (
     id INT NUll NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    firstName VARCHAR(30) NOT NULL,
-    lastName VARCHAR(30) NOT NULL,
+    first_name VARCHAR(30) NOT NULL,
+    last_name VARCHAR(30) NOT NULL,
     role_id INT NOT NULL,
     manager_id INT NOT NULL,
     FOREIGN KEY (role_id) REFERENCES role(id) ON DELETE RESTRICT ON UPDATE CASCADE,

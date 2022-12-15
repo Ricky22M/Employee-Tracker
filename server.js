@@ -1,16 +1,16 @@
 // require NPM packages
-const mysql2 = require('mysql2');
+const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 
 require('dotenv').config();
 
 // Used to connect with database using SQL
-const db = mysql2.createConnection(
+const db = mysql.createConnection(
     {
         host: 'localhost',
         user: 'root',
-        password: process.env.DB_Password,
+        password: process.env.DB_PASSWORD,
         database: 'employees_db',
     },
 );
@@ -41,7 +41,6 @@ askUser = () => {
         },
     ]).then((userChoices) => {
         const { options } = userChoices;
-        // 
         if (options === 'View All Departments') {
             allDepartments();
         } else if (options === 'View All Roles') {
@@ -91,12 +90,12 @@ allRoles = () => {
 // The option 'View All Employees' leads to the 'allEmployees' function
 allEmployess = () => {
     const runEmployeesSql = `SELECT employee.id, 
-                                    employee.firstName, 
-                                    employee.lastName, 
+                                    employee.first_name, 
+                                    employee.last_name, 
                                     role.title,
                                     department.name AS department, 
                                     role.salary, 
-                                    CONCAT (manager.first, ' ', manager.last_name) AS manager 
+                                    CONCAT (manager.first_name, ' ', manager.last_name) AS manager 
                                 FROM employee 
                                     LEFT JOIN role ON employee.role_id = department.id
                                     LEFT JOIN department ON role.department_id = department.id 
@@ -177,17 +176,17 @@ createEmployee = () => {
     inquirer.prompt([
         {
             type: 'input',
-            name: 'firstName',
+            name: 'first_name',
             message: 'What is the first name of this new employee?',
         },
         {
             type: 'input',
-            name: 'lastName',
+            name: 'last_name',
             message: 'What is the last name of this new employee?',
         },
     ]).then(userChoice => {
         //
-        const fullName = [userChoice.firstName, userChoice.lastName];
+        const fullName = [userChoice.first_name, userChoice.last_name];
         const employeeRole = `SELECT role.id, role.title FROM role`;
 
         db.query(employeeRole, (err, data) => {
@@ -210,7 +209,7 @@ createEmployee = () => {
                 db.query(runManagerSql ,(err, data) => {
                     if (err) throw err;
 
-                    let managers = data.map(({ id, firstName, lastName }) => ({ name: firstName + ' ' + lastName, value: id }));
+                    let managers = data.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }));
 
                     inquirer.prompt([
                         {
@@ -223,11 +222,11 @@ createEmployee = () => {
                         const manager = managerChoice.manager;
                         fullName.push(manager);
 
-                        const runNewEmployeeSql = `INSERT INTO employee (firstName, LastName, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+                        const runNewEmployeeSql = `INSERT INTO employee (first_name, Last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
                         db.query(runNewEmployeeSql, fullName, (err, result) => {
                             if (err) throw err;
 
-                            console.log('Successfully added ' + userChoice.firstName + ' ' + userChoice.lastName + ' to the database');
+                            console.log('Successfully added ' + userChoice.first_name + ' ' + userChoice.last_name + ' to the database');
 
                             askUser();
                         });
@@ -245,7 +244,7 @@ updateRole = () => {
     db.query(runUpdateSql, (err, data) =>{
         if (err) throw err;
 
-        const workForce = data.map(({ id, firstName, lastName, }) => ({ name: firstName + ' ' + lastName, value: id }));
+        const workForce = data.map(({ id, first_name, last_name, }) => ({ name: first_name + ' ' + last_name, value: id }));
 
         inquirer.prompt([
             {
@@ -263,7 +262,7 @@ updateRole = () => {
             datab.query(runRoleSql, (err, data) => {
                 if (err) throw err;
 
-                const setRole = data.map(({ id, firstName, lastName }) => ({ name: firstName + ' ' + lastName, value: id }));
+                const setRole = data.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }));
                 inquirer.prompt([
                     {
                         type: 'list',
