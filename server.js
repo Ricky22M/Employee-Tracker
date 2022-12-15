@@ -1,20 +1,12 @@
 // require NPM packages
-const express = require('express');
 const mysql2 = require('mysql2');
 const inquirer = require('inquirer');
+const cTable = require('console.table');
 
-// Setting PORT for server
-const PORT = process.env.PORT || 3001;
-
-// Using express
-const app = express();
-
-// Middleware
-app.use(express.urlencoded({ extended: true }));
-app.use(express.json);
+require('dotenv').config();
 
 // Used to connect with database using SQL
-const db = mysql2.creeateConnect(
+const db = mysql2.creeateConnection(
     {
         host: 'localhost',
         user: 'root',
@@ -25,23 +17,30 @@ const db = mysql2.creeateConnect(
 
 db.connect((err) => {
     if (err) throw err;
-    else{
-        questions();
-    }
+    console.log('Connection to database has been confirmed')
+    askUser();
 });
 
 // Questions given to the user
 
-questions = () => {
+askUser = () => {
     inquirer.prompt ([
         {
             type: 'list',
             name: 'options',
             message: 'What would you like to do?',
-            options: ['View All Employees', 'Add Employee', 'Update Employee Role', 'View All Roles', 'Add Role', 'View All Departments', 'Add Department']
+            options: [
+                'View All Employees', 
+                'Add Employee', 
+                'Update Employee Role', 
+                'View All Roles', 
+                'Add Role', 
+                'View All Departments', 
+                'Add Department'
+            ]
         }
-    ]).then((userChoice) => {
-        const { options } = userChoice;
+    ]).then((userChoices) => {
+        const { options } = userChoices;
         // 
         if (options === 'View All Employees') {
             allEmployess();
@@ -52,7 +51,7 @@ questions = () => {
         } else if (options === 'View All Roles') {
             allRoles();
         } else if (options === 'Add Role') {
-            newRole();
+            createRole();
         } else if (options === 'View All Departments') {
             allDepartments();
         } else if (options === 'Add Department') {
@@ -63,15 +62,22 @@ questions = () => {
 
 // The option 'View All Employees' leads to the 'allEmployees' function
 allEmployess = () => {
-    const runEmployeesSql = `SELECT employee.id, employee.firstName, employee.lastName, role.title,
-                department.name AS department, role.salary, CONCAT (manager.first, ' ', 
-                manager.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = department.id
-                LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON employee.manager_id = manager.id`;
+    const runEmployeesSql = `SELECT employee.id, 
+                                    employee.firstName, 
+                                    employee.lastName, 
+                                    role.title,
+                                    department.name AS department, 
+                                    role.salary, 
+                                    CONCAT (manager.first, ' ', manager.last_name) AS manager 
+                                FROM employee 
+                                    LEFT JOIN role ON employee.role_id = department.id
+                                    LEFT JOIN department ON role.department_id = department.id 
+                                    LEFT JOIN employee manager ON employee.manager_id = manager.id`;
 
     db.query(runEmployeesSql, (err, rows) => {
         if (err) throw err;
         console.table(rows);
-        questions();
+        askUser();
     });
 }
 
@@ -132,7 +138,7 @@ addEmployee = () => {
 
                             console.log('Successfully added ' + userChoice.firstName + ' ' + userChoice.lastName + ' to the database');
 
-                            questions();
+                            askUser();
                         });
                     });
                 });
@@ -170,12 +176,12 @@ updateRole = () => {
                 inquirer.prompt([
                     {
                         type: 'list',
-                        name: 'updateRole',
+                        name: 'updateEmployeeRole',
                         message: `what role will this employee have?`,
                         options: setRole
                     }
                 ]).then(updateNewRole => {
-                    const newRole = updateNewRole.updateRole;
+                    const newRole = updateNewRole.updateEmployeeRole;
                     newParams.push(newRole);
 
                     let newEmployee = newParams[0];
@@ -189,8 +195,67 @@ updateRole = () => {
                         if (err) throw err;
                         console.log(`Successfully updated role`);
                         
-                        questions();
+                        askUser();
                     });
+                });
+            });
+        });
+    });
+}
+
+// The option 'View All Roles' leads to the 'allRoles' function
+allRoles = () => {
+    const runAllRolesSql = `SELECT role.id,
+                            role.title,
+                            department.name AS department,
+                            FROM role
+                            INNER JOIN department
+                            ON role.department_id = department.id`
+    db.query(runAllRolesSql, (err, result) => {
+        if (err) throw err;
+        console.table(rows);
+        askUser();
+    });
+}
+
+// The option 'Add Role' leads to the 'createRole' function
+createRole = () => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'role',
+            message: 'What is the name of the new role that you will be creating?',
+        },
+        {
+            type: 'input',
+            name: 'salary',
+            message: 'What is the salary amount this role will make?'
+        }
+    ]).then(userChoice => {
+        const salaryForRole = [userChoice.role, userChoice.salary];
+
+        const runNewRoleSql = `SELECT name, id FROM department`;
+        db.query(runNewRoleSql, (err,data) => {
+            if (err) throw err;
+
+            const department = data.map(({ name, id }) => ({ name: name, value: id }));
+
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'department',
+                    message: 'What department will this role be associated with?',
+                    option: department
+                }
+            ]).then(userChoiceDepartment => {
+                salaryForRole.push(userChoiceDepartment.department);
+
+                const runPositionSql = `INSERT INTO role (title, salary, department_id) VALUE (?, ?, ?, ?)`;
+                db.query(runPositionSql, salaryForRole, (err, result) => {
+                    if (err) throw err;
+                    console.log('Created ' + userChoice.role + ' to the database');
+
+                    askUser();
                 });
             });
         });
