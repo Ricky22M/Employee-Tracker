@@ -6,7 +6,7 @@ const cTable = require('console.table');
 require('dotenv').config();
 
 // Used to connect with database using SQL
-const db = mysql2.creeateConnection(
+const db = mysql2.createConnection(
     {
         host: 'localhost',
         user: 'root',
