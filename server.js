@@ -1,9 +1,6 @@
 // require NPM packages
-
 const express = require('express');
-
 const mysql2 = require('mysql2');
-
 const inquirer = require('inquirer');
 
 // Setting PORT for server
@@ -66,12 +63,12 @@ questions = () => {
 
 // The option 'View All Employees' leads to the 'allEmployees' function
 allEmployess = () => {
-    const runSql = `SELECT employee.id, employee.firstName, employee.lastName, role.title,
+    const runEmployeesSql = `SELECT employee.id, employee.firstName, employee.lastName, role.title,
                 department.name AS department, role.salary, CONCAT (manager.first, ' ', 
                 manager.last_name) AS manager FROM employee LEFT JOIN role ON employee.role_id = department.id
                 LEFT JOIN department ON role.department_id = department.id LEFT JOIN employee manager ON employee.manager_id = manager.id`;
 
-    db.query(runSql, (err, rows) => {
+    db.query(runEmployeesSql, (err, rows) => {
         if (err) throw err;
         console.table(rows);
         questions();
@@ -129,9 +126,8 @@ addEmployee = () => {
                         const manager = managerChoice.manager;
                         fullName.push(manager);
 
-                        const runSql = `INSERT INTO employee (firstName, LastName, role_id, manager_id) VALUES (?, ?, ?, ?)`;
-
-                        db.query(runSql, fullName, (err, result) => {
+                        const runNewEmployeeSql = `INSERT INTO employee (firstName, LastName, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+                        db.query(runNewEmployeeSql, fullName, (err, result) => {
                             if (err) throw err;
 
                             console.log('Successfully added ' + userChoice.firstName + ' ' + userChoice.lastName + ' to the database');
@@ -147,5 +143,56 @@ addEmployee = () => {
 
 // The option 'Update Employee Role' leads to the 'updateRole' function
 updateRole = () => {
+    const runUpdateSql = `SELECT * FROM employee`;
 
+    db.query(runUpdateSql, (err, data) =>{
+        if (err) throw err;
+
+        const workForce = data.map(({ id, firstName, lastName, }) => ({ name: firstName + ' ' + lastName, value: id }));
+
+        inquirer.prompt([
+            {
+                type: 'list',
+                name: 'nameUpdate',
+                message: 'Which employee would you like to update the role for?',
+                options: workForce
+            }
+        ]).then(employeeUpdate => {
+            const employee = employeeUpdate.nameUpdate;
+            const newParams = [];
+            settings.push(employee);
+
+            const runRoleSql = `SELECT * FROM role`;
+            datab.query(runRoleSql, (err, data) => {
+                if (err) throw err;
+
+                const setRole = data.map(({ id, firstName, lastName }) => ({ name: firstName + ' ' + lastName, value: id }));
+                inquirer.prompt([
+                    {
+                        type: 'list',
+                        name: 'updateRole',
+                        message: `what role will this employee have?`,
+                        options: setRole
+                    }
+                ]).then(updateNewRole => {
+                    const newRole = updateNewRole.updateRole;
+                    newParams.push(newRole);
+
+                    let newEmployee = newParams[0];
+                    newParams[0] = newRole;
+                    newParams[1] = newEmployee;
+
+                    const runUpdateRoleSql = `UPDATE employee 
+                                            SET role_id = ? 
+                                            WHERE id = ?`;
+                    db.query(runUpdateRoleSql, newParams, (err, result) => {
+                        if (err) throw err;
+                        console.log(`Successfully updated role`);
+                        
+                        questions();
+                    });
+                });
+            });
+        });
+    });
 }
