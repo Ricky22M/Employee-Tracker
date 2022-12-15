@@ -11,13 +11,13 @@ const db = mysql2.creeateConnection(
         host: 'localhost',
         user: 'root',
         password: process.env.DB_Password,
-        database: 'employees_db'
-    }
+        database: 'employees_db',
+    },
 );
 
 db.connect((err) => {
     if (err) throw err;
-    console.log('Connection to database has been confirmed')
+    console.log('Connection to database has been confirmed');
     askUser();
 });
 
@@ -30,33 +30,61 @@ askUser = () => {
             name: 'options',
             message: 'What would you like to do?',
             options: [
-                'View All Employees', 
-                'Add Employee', 
+                'View All Departments',
+                'View All Roles',
+                'View All Employees',
+                'Add Department',
+                'Add Role',
+                'Add Employee',
                 'Update Employee Role', 
-                'View All Roles', 
-                'Add Role', 
-                'View All Departments', 
-                'Add Department'
-            ]
-        }
+            ],
+        },
     ]).then((userChoices) => {
         const { options } = userChoices;
         // 
-        if (options === 'View All Employees') {
-            allEmployess();
-        } else if (options === 'Add Employee') {
-            newEmployee();
-        } else if (options === 'Update Employee Role') {
-            updateRole();
+        if (options === 'View All Departments') {
+            allDepartments();
         } else if (options === 'View All Roles') {
             allRoles();
+        } else if (options === 'View All Employees') {
+            allEmployess();
+        } else if (options === 'Add Department') {
+            createDepartment();
         } else if (options === 'Add Role') {
             createRole();
-        } else if (options === 'View All Departments') {
-            allDepartments();
-        } else if (options === 'Add Department') {
-            newDepartment();
+        } else if (options === 'Add Employee') {
+            createEmployee();
+        } else if (options === 'Update Employee Role') {
+            updateRole();
         }
+    });
+}
+
+// The option 'View All Departments' leads to the 'allDepartments' function
+allDepartments = () => {
+    const runAllDepartmentsSql = `SELECT department.id AS id,
+                                  department.name AS department
+                                  FROM department`
+    db.query(runAllDepartmentsSql, (err, rows) => {
+        if (err) throw err;
+        console.log('All departments');
+
+        askUser();
+    });
+}
+
+// The option 'View All Roles' leads to the 'allRoles' function
+allRoles = () => {
+    const runAllRolesSql = `SELECT role.id,
+                            role.title,
+                            department.name AS department,
+                            FROM role
+                            INNER JOIN department
+                            ON role.department_id = department.id`
+    db.query(runAllRolesSql, (err, result) => {
+        if (err) throw err;
+        console.table(rows);
+        askUser();
     });
 }
 
@@ -81,19 +109,82 @@ allEmployess = () => {
     });
 }
 
+// The option 'Add Department' leads to the 'createDepartment' function
+createDepartment = () => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'newDepartment',
+            message: 'What will be the name of this new department?',
+        },
+    ]).then(userChoice => {
+        const runNewDepartmentSql = `INSERT INTO department (name) VALUES (?)`;
+        db.query(runNewDepartmentSql, userChoice.runNewDepartment, (err, result) => {
+            if (err) throw err;
+            console.log('Created ' + userChoice.newDepartment + ' to the database');
+
+            askUser();
+        });
+    });
+}
+
+// The option 'Add Role' leads to the 'createRole' function
+createRole = () => {
+    inquirer.prompt([
+        {
+            type: 'input',
+            name: 'role',
+            message: 'What is the name of the new role that you will be creating?',
+        },
+        {
+            type: 'input',
+            name: 'salary',
+            message: 'What is the salary amount this role will make?',
+        },
+    ]).then(userChoice => {
+        const salaryForRole = [userChoice.role, userChoice.salary];
+
+        const runNewRoleSql = `SELECT name, id FROM department`;
+        db.query(runNewRoleSql, (err,data) => {
+            if (err) throw err;
+
+            const department = data.map(({ name, id }) => ({ name: name, value: id }));
+
+            inquirer.prompt([
+                {
+                    type: 'list',
+                    name: 'department',
+                    message: 'What department will this role be associated with?',
+                    option: department,
+                },
+            ]).then(userChoiceDepartment => {
+                salaryForRole.push(userChoiceDepartment.department);
+
+                const runPositionSql = `INSERT INTO role (title, salary, department_id) VALUE (?, ?, ?, ?)`;
+                db.query(runPositionSql, salaryForRole, (err, result) => {
+                    if (err) throw err;
+                    console.log('Created ' + userChoice.role + ' to the database');
+
+                    askUser();
+                });
+            });
+        });
+    });
+}
+
 // The option 'Add Employee' leads to the 'newEmployee' function
-addEmployee = () => {
+createEmployee = () => {
     inquirer.prompt([
         {
             type: 'input',
             name: 'firstName',
-            message: 'What is the first name of this new employee?'
+            message: 'What is the first name of this new employee?',
         },
         {
             type: 'input',
             name: 'lastName',
-            message: 'What is the last name of this new employee?'
-        }
+            message: 'What is the last name of this new employee?',
+        },
     ]).then(userChoice => {
         //
         const fullName = [userChoice.firstName, userChoice.lastName];
@@ -109,8 +200,8 @@ addEmployee = () => {
                     type: 'list',
                     name: 'role',
                     message: `what is the employee's role?`,
-                    options: setRole
-                }
+                    options: setRole,
+                },
             ]).then(roleChoice => {
                 const newRole = roleChoice.role;
                 fullName.push(newRole);
@@ -126,8 +217,8 @@ addEmployee = () => {
                             type: 'list',
                             name: 'manager',
                             message: `Who is the employee's manager?`,
-                            options: managers
-                        }
+                            options: managers,
+                        },
                     ]).then(managerChoice => {
                         const manager = managerChoice.manager;
                         fullName.push(manager);
@@ -161,8 +252,8 @@ updateRole = () => {
                 type: 'list',
                 name: 'nameUpdate',
                 message: 'Which employee would you like to update the role for?',
-                options: workForce
-            }
+                options: workForce,
+            },
         ]).then(employeeUpdate => {
             const employee = employeeUpdate.nameUpdate;
             const newParams = [];
@@ -178,8 +269,8 @@ updateRole = () => {
                         type: 'list',
                         name: 'updateEmployeeRole',
                         message: `what role will this employee have?`,
-                        options: setRole
-                    }
+                        options: setRole,
+                    },
                 ]).then(updateNewRole => {
                     const newRole = updateNewRole.updateEmployeeRole;
                     newParams.push(newRole);
@@ -197,65 +288,6 @@ updateRole = () => {
                         
                         askUser();
                     });
-                });
-            });
-        });
-    });
-}
-
-// The option 'View All Roles' leads to the 'allRoles' function
-allRoles = () => {
-    const runAllRolesSql = `SELECT role.id,
-                            role.title,
-                            department.name AS department,
-                            FROM role
-                            INNER JOIN department
-                            ON role.department_id = department.id`
-    db.query(runAllRolesSql, (err, result) => {
-        if (err) throw err;
-        console.table(rows);
-        askUser();
-    });
-}
-
-// The option 'Add Role' leads to the 'createRole' function
-createRole = () => {
-    inquirer.prompt([
-        {
-            type: 'input',
-            name: 'role',
-            message: 'What is the name of the new role that you will be creating?',
-        },
-        {
-            type: 'input',
-            name: 'salary',
-            message: 'What is the salary amount this role will make?'
-        }
-    ]).then(userChoice => {
-        const salaryForRole = [userChoice.role, userChoice.salary];
-
-        const runNewRoleSql = `SELECT name, id FROM department`;
-        db.query(runNewRoleSql, (err,data) => {
-            if (err) throw err;
-
-            const department = data.map(({ name, id }) => ({ name: name, value: id }));
-
-            inquirer.prompt([
-                {
-                    type: 'list',
-                    name: 'department',
-                    message: 'What department will this role be associated with?',
-                    option: department
-                }
-            ]).then(userChoiceDepartment => {
-                salaryForRole.push(userChoiceDepartment.department);
-
-                const runPositionSql = `INSERT INTO role (title, salary, department_id) VALUE (?, ?, ?, ?)`;
-                db.query(runPositionSql, salaryForRole, (err, result) => {
-                    if (err) throw err;
-                    console.log('Created ' + userChoice.role + ' to the database');
-
-                    askUser();
                 });
             });
         });
