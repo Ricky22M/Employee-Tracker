@@ -74,7 +74,7 @@ allDepartments = () => {
                                   FROM department`
     db.query(runAllDepartmentsSql, (err, rows) => {
         if (err) throw err;
-        console.log('All departments');
+        console.table(rows);
 
         askUser();
     });
@@ -85,6 +85,7 @@ allRoles = () => {
     const runAllRolesSql = `SELECT role.id,
                             role.title,
                             department.name AS department,
+                            role.salary,
                             FROM role
                             INNER JOIN department
                             ON role.department_id = department.id`
@@ -105,7 +106,7 @@ allEmployess = () => {
                                     role.salary, 
                                     CONCAT (manager.first_name, ' ', manager.last_name) AS manager 
                                 FROM employee 
-                                    LEFT JOIN role ON employee.role_id = department.id
+                                    LEFT JOIN role ON employee.role_id = role.id
                                     LEFT JOIN department ON role.department_id = department.id 
                                     LEFT JOIN employee manager ON employee.manager_id = manager.id`;
 
@@ -126,7 +127,7 @@ createDepartment = () => {
         },
     ]).then(userChoice => {
         const runNewDepartmentSql = `INSERT INTO department (name) VALUES (?)`;
-        db.query(runNewDepartmentSql, userChoice.runNewDepartment, (err, result) => {
+        db.query(runNewDepartmentSql, userChoice.newDepartment, (err, result) => {
             if (err) throw err;
             console.log('Created ' + userChoice.newDepartment + ' to the database');
 
@@ -162,12 +163,12 @@ createRole = () => {
                     type: 'list',
                     name: 'department',
                     message: 'What department will this role be associated with?',
-                    option: department,
+                    options: department,
                 },
             ]).then(userChoiceDepartment => {
                 salaryForRole.push(userChoiceDepartment.department);
 
-                const runPositionSql = `INSERT INTO role (title, salary, department_id) VALUE (?, ?, ?, ?)`;
+                const runPositionSql = `INSERT INTO role (title, salary, department_id) VALUE (?, ?, ?)`;
                 db.query(runPositionSql, salaryForRole, (err, result) => {
                     if (err) throw err;
                     console.log('Created ' + userChoice.role + ' to the database');
@@ -184,19 +185,19 @@ createEmployee = () => {
     inquirer.prompt([
         {
             type: 'input',
-            name: 'first_name',
+            name: 'firstName',
             message: 'What is the first name of this new employee?',
         },
         {
             type: 'input',
-            name: 'last_name',
+            name: 'lastName',
             message: 'What is the last name of this new employee?',
         },
     ]).then(userChoice => {
-        const fullName = [userChoice.first_name, userChoice.last_name];
-        const employeeRole = `SELECT role.id, role.title FROM role`;
+        const fullName = [userChoice.firstName, userChoice.lastName];
+        const runNewEmployeeSql = `SELECT role.id, role.title FROM role`;
 
-        db.query(employeeRole, (err, data) => {
+        db.query(runNewEmployeeSql, (err, data) => {
             if (err) throw err;
 
             let setRole = data.map(({ id, title }) => ({ name: title, value: id }));
@@ -229,11 +230,11 @@ createEmployee = () => {
                         const manager = managerChoice.manager;
                         fullName.push(manager);
 
-                        const runNewEmployeeSql = `INSERT INTO employee (first_name, Last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
+                        const runNewEmployeeSql = `INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?, ?, ?, ?)`;
                         db.query(runNewEmployeeSql, fullName, (err, result) => {
                             if (err) throw err;
 
-                            console.log('Successfully added ' + userChoice.first_name + ' ' + userChoice.last_name + ' to the database');
+                            console.log('Successfully added ' + userChoice.firstName + ' ' + userChoice.lastName + ' to the database');
 
                             askUser();
                         });
@@ -263,13 +264,13 @@ updateRole = () => {
         ]).then(employeeUpdate => {
             const employee = employeeUpdate.nameUpdate;
             const newParams = [];
-            settings.push(employee);
+            newParams.push(employee);
 
             const runRoleSql = `SELECT * FROM role`;
             datab.query(runRoleSql, (err, data) => {
                 if (err) throw err;
 
-                const setRole = data.map(({ id, first_name, last_name }) => ({ name: first_name + ' ' + last_name, value: id }));
+                const setRole = data.map(({ id, title }) => ({ name: title, value: id }));
                 inquirer.prompt([
                     {
                         type: 'list',
@@ -286,8 +287,8 @@ updateRole = () => {
                     newParams[1] = newEmployee;
 
                     const runUpdateRoleSql = `UPDATE employee 
-                                            SET role_id = ? 
-                                            WHERE id = ?`;
+                                              SET role_id = ? 
+                                              WHERE id = ?`;
                     db.query(runUpdateRoleSql, newParams, (err, result) => {
                         if (err) throw err;
                         console.log(`Successfully updated role`);
