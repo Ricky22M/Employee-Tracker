@@ -2,8 +2,16 @@
 const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
+const express = require('express');
 
 require('dotenv').config();
+
+const PORT = process.env.PORT || 3001
+
+const app = express();
+
+app.use(express.urlencoded({ extended: false }));
+app.use(express.json());
 
 // Used to connect with database using SQL
 const db = mysql.createConnection(
@@ -185,7 +193,6 @@ createEmployee = () => {
             message: 'What is the last name of this new employee?',
         },
     ]).then(userChoice => {
-        //
         const fullName = [userChoice.first_name, userChoice.last_name];
         const employeeRole = `SELECT role.id, role.title FROM role`;
 
@@ -292,3 +299,7 @@ updateRole = () => {
         });
     });
 }
+
+app.listen(PORT, () => {
+    console.log(`Server running on ${PORT}`);
+});
