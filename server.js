@@ -35,9 +35,10 @@ askUser = () => {
     inquirer.prompt ([
         {
             type: 'list',
-            name: 'options',
+            // change name to choice
+            name: 'choices',
             message: 'What would you like to do?',
-            options: [
+            choices: [
                 'View All Departments',
                 'View All Roles',
                 'View All Employees',
@@ -48,26 +49,26 @@ askUser = () => {
             ],
         },
     ]).then((userChoices) => {
-        const { options } = userChoices;
-        if (options === 'View All Departments') {
+        const { choices } = userChoices;
+        if (choices === 'View All Departments') {
             allDepartments();
-        } else if (options === 'View All Roles') {
+        } else if (choices === 'View All Roles') {
             allRoles();
-        } else if (options === 'View All Employees') {
+        } else if (choices === 'View All Employees') {
             allEmployess();
-        } else if (options === 'Add Department') {
+        } else if (choices === 'Add Department') {
             createDepartment();
-        } else if (options === 'Add Role') {
+        } else if (choices === 'Add Role') {
             createRole();
-        } else if (options === 'Add Employee') {
+        } else if (choices === 'Add Employee') {
             createEmployee();
-        } else if (options === 'Update Employee Role') {
+        } else if (choices === 'Update Employee Role') {
             updateRole();
         }
     });
 }
 
-// The option 'View All Departments' leads to the 'allDepartments' function
+// The choice 'View All Departments' leads to the 'allDepartments' function
 allDepartments = () => {
     const runAllDepartmentsSql = `SELECT department.id AS id,
                                   department.name AS department
@@ -80,7 +81,7 @@ allDepartments = () => {
     });
 }
 
-// The option 'View All Roles' leads to the 'allRoles' function
+// The choice 'View All Roles' leads to the 'allRoles' function
 allRoles = () => {
     const runAllRolesSql = `SELECT role.id,
                             role.title,
@@ -96,7 +97,7 @@ allRoles = () => {
     });
 }
 
-// The option 'View All Employees' leads to the 'allEmployees' function
+// The choice 'View All Employees' leads to the 'allEmployees' function
 allEmployess = () => {
     const runEmployeesSql = `SELECT employee.id, 
                                     employee.first_name, 
@@ -117,7 +118,7 @@ allEmployess = () => {
     });
 }
 
-// The option 'Add Department' leads to the 'createDepartment' function
+// The choice 'Add Department' leads to the 'createDepartment' function
 createDepartment = () => {
     inquirer.prompt([
         {
@@ -136,7 +137,7 @@ createDepartment = () => {
     });
 }
 
-// The option 'Add Role' leads to the 'createRole' function
+// The choice 'Add Role' leads to the 'createRole' function
 createRole = () => {
     inquirer.prompt([
         {
@@ -163,7 +164,7 @@ createRole = () => {
                     type: 'list',
                     name: 'department',
                     message: 'What department will this role be associated with?',
-                    options: department,
+                    choices: department,
                 },
             ]).then(userChoiceDepartment => {
                 salaryForRole.push(userChoiceDepartment.department);
@@ -180,7 +181,7 @@ createRole = () => {
     });
 }
 
-// The option 'Add Employee' leads to the 'newEmployee' function
+// The choice 'Add Employee' leads to the 'newEmployee' function
 createEmployee = () => {
     inquirer.prompt([
         {
@@ -207,7 +208,7 @@ createEmployee = () => {
                     type: 'list',
                     name: 'role',
                     message: `what is the employee's role?`,
-                    options: setRole,
+                    choices: setRole,
                 },
             ]).then(roleChoice => {
                 const newRole = roleChoice.role;
@@ -224,7 +225,7 @@ createEmployee = () => {
                             type: 'list',
                             name: 'manager',
                             message: `Who is the employee's manager?`,
-                            options: managers,
+                            choices: managers,
                         },
                     ]).then(managerChoice => {
                         const manager = managerChoice.manager;
@@ -245,7 +246,7 @@ createEmployee = () => {
     });
 }
 
-// The option 'Update Employee Role' leads to the 'updateRole' function
+// The choice 'Update Employee Role' leads to the 'updateRole' function
 updateRole = () => {
     const runUpdateSql = `SELECT * FROM employee`;
 
@@ -259,7 +260,7 @@ updateRole = () => {
                 type: 'list',
                 name: 'nameUpdate',
                 message: 'Which employee would you like to update the role for?',
-                options: workForce,
+                choices: workForce,
             },
         ]).then(employeeUpdate => {
             const employee = employeeUpdate.nameUpdate;
@@ -276,7 +277,7 @@ updateRole = () => {
                         type: 'list',
                         name: 'updateEmployeeRole',
                         message: `what role will this employee have?`,
-                        options: setRole,
+                        choices: setRole,
                     },
                 ]).then(updateNewRole => {
                     const newRole = updateNewRole.updateEmployeeRole;
