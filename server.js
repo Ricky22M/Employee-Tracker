@@ -3,13 +3,15 @@ const mysql = require('mysql2');
 const inquirer = require('inquirer');
 const cTable = require('console.table');
 const express = require('express');
-
 require('dotenv').config();
 
+// Creating PORT to start server
 const PORT = process.env.PORT || 3001
 
+// Using app to use express methods
 const app = express();
 
+// Using middleware
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json());
 
@@ -23,6 +25,7 @@ const db = mysql.createConnection(
     },
 );
 
+// Connection made after creditionals have been cleared
 db.connect((err) => {
     if (err) throw err;
     console.log('Connection to database has been confirmed');
@@ -30,7 +33,6 @@ db.connect((err) => {
 });
 
 // Questions given to the user
-
 askUser = () => {
     inquirer.prompt ([
         {
@@ -89,8 +91,9 @@ allRoles = () => {
                             role.salary,
                             FROM role
                             INNER JOIN department
-                            ON role.department_id = department.id`
+                            ON role.department_id = department.id`;
     db.query(runAllRolesSql, (err, result) => {
+        // need to fix the error here
         if (err) throw err;
         console.table(rows);
         askUser();
@@ -268,7 +271,7 @@ updateRole = () => {
             newParams.push(employee);
 
             const runRoleSql = `SELECT * FROM role`;
-            datab.query(runRoleSql, (err, data) => {
+            db.query(runRoleSql, (err, data) => {
                 if (err) throw err;
 
                 const setRole = data.map(({ id, title }) => ({ name: title, value: id }));
@@ -302,6 +305,7 @@ updateRole = () => {
     });
 }
 
+// Listens to PORT to start server from PORT
 app.listen(PORT, () => {
     console.log(`Server running on ${PORT}`);
 });
