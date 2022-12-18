@@ -3,7 +3,7 @@
   [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
   ## Walkthrough Video
-  [//]: <> (Add video here)
+  [Walkthrough Video Here](https://drive.google.com/file/d/1oguZ8dTFEelDin9c_4k2NxOt4kFvxg8x/view)
 
   ## Description
   This project helps to keep track of employees from either adding/removing employees, creating new roles, to creating departments in company  and updating  current employee roles.
