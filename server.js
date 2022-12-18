@@ -88,12 +88,11 @@ allRoles = () => {
     const runAllRolesSql = `SELECT role.id,
                             role.title,
                             department.name AS department,
-                            role.salary,
+                            role.salary
                             FROM role
                             INNER JOIN department
                             ON role.department_id = department.id`;
-    db.query(runAllRolesSql, (err, result) => {
-        // need to fix the error here
+    db.query(runAllRolesSql, (err, rows) => {
         if (err) throw err;
         console.table(rows);
         askUser();
