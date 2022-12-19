@@ -13,7 +13,6 @@
   * [Acceptance Criteria](#acceptance-criteria)
   * [Installation](#installation)
   * [Usage](#usage)
-  * [Contributing](#contributing)
   * [License](#license)
   * [Contact Information](#questions)
   
@@ -48,7 +47,7 @@
   ```
 
   ## Installation
-  Run the command inside the terminal ```npm i ```, then inside the terminal the command ```mysql -u root -p```. Process to put in your password for your MySQL account. Afterwards run in MySQL ```source db/schema.sql;```. Next run the command in MySQL ```source db/seed.sql```, then quit out of MySQL. Finally, run in the terminal ```node server.js```.
+  Run the command inside the terminal ```npm i ```, then inside the terminal, run the command ```mysql -u root -p```. Put in your password for your MySQL account. Afterwards, run in MySQL ```source db/schema.sql```. Next, run the command in MySQL ```source db/seed.sql```, then quit out of MySQL. Finally, run in the terminal ```node server.js```.
   
   ## Usage
   Making a managing employee tracker system user friendly with the instructions provided above.
